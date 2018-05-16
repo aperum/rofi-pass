@@ -201,8 +201,8 @@ typeField () {
 generateOTP () {
 	checkIfPass
 
-	# First, we check if there is a non-conventional OTP command in the pass file
-	if PASSWORD_STORE_DIR="${root}" pass "$selected_password" | grep -q "${OTPmethod_field}: "; then
+	# First, we check if there is a non-conventional OTP command in the gopass file
+	if PASSWORD_STORE_DIR="${root}" gopass "$selected_password" | grep -q "${OTPmethod_field}: "; then
 		# We execute the commands after otp_method: AS-IS
 		bash -c "$(PASSWORD_STORE_DIR="${root}" gopass "$selected_password" | grep "${OTPmethod_field}: " | cut -d' ' -f2-)"
 	else
@@ -372,7 +372,7 @@ mainMenu () {
 
 		if [[ ${password} == "#FILE="* ]]; then
 			pass_file="${password#*=}"
-			mapfile -t password_temp2 < <(PASSWORD_STORE_DIR="${root}" pass show "${pass_file}")
+			mapfile -t password_temp2 < <(PASSWORD_STORE_DIR="${root}" gopass show "${pass_file}")
 			password=${password_temp2[0]}
 		fi
 
@@ -443,12 +443,6 @@ mainMenu () {
 		28) generateQrCode;;
 	esac
 	clearUp
-
-	# fix keyboard layout if enabled in config
-	if [[ $fix_layout == "true" ]]; then
-		layout_cmd_leave
-	fi
-
 }
 
 
@@ -460,6 +454,12 @@ clearUp () {
 	unset selected_password
 	unset password_temp
 	unset stuff
+
+	# fix keyboard layout if enabled in config
+	if [[ $fix_layout == "true" ]]; then
+		layout_cmd_leave
+	fi
+
 }
 
 helpMenu () {
@@ -476,7 +476,7 @@ helpMenu () {
 	---
 	${action_menu}: Edit, Move, Delete, Re-generate Submenu
 	${show}: Show Password File
-	${insert_pass}: Insert new Pass Entry
+	${insert_pass}: Insert new Gopass Entry
 	${switch}: Switch Pass/Bookmark Mode
 	---
 	${previous_root}: Switch to previous password store (--root)
@@ -728,12 +728,12 @@ insertPass () {
 				"---"
 				"${USERNAME_field}: ${user}"
 				"${URL_field}: ${url}")
-			printf '%s\n' "${pass_content[@]}" | PASSWORD_STORE_DIR="${root}" gopass insert -m "${name}" > /dev/null && PASSWORD_STORE_DIR="${root}" pass edit "${name}"
+			printf '%s\n' "${pass_content[@]}" | PASSWORD_STORE_DIR="${root}" gopass insert -m "${name}" > /dev/null && PASSWORD_STORE_DIR="${root}" gopass edit "${name}"
 		else
 			pass_content=("${pw}"
 				"---"
 				"${USERNAME_field}: ${user}")
-			printf '%s\n' "${pass_content[@]}" | PASSWORD_STORE_DIR="${root}" gopass insert -m "${name}" > /dev/null && PASSWORD_STORE_DIR="${root}" pass edit "${name}"
+			printf '%s\n' "${pass_content[@]}" | PASSWORD_STORE_DIR="${root}" gopass insert -m "${name}" > /dev/null && PASSWORD_STORE_DIR="${root}" gopass edit "${name}"
 		fi
 	else
 		if [[ $url == http* ]]; then
@@ -741,7 +741,7 @@ insertPass () {
 				"---"
 				"${USERNAME_field}: ${user}"
 				"${URL_field}: ${url}")
-			printf '%s\n' "${pass_content[@]}" | PASSWORD_STORE_DIR="${root}" gopass insert -m "${group}/${name}" > /dev/null && PASSWORD_STORE_DIR="${root}" pass edit "${group}/${name}"
+			printf '%s\n' "${pass_content[@]}" | PASSWORD_STORE_DIR="${root}" gopass insert -m "${group}/${name}" > /dev/null && PASSWORD_STORE_DIR="${root}" gopass edit "${group}/${name}"
 		else
 			pass_content=("${pw}"
 				"---"
