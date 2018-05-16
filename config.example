@@ -2,6 +2,11 @@
 # which can be switched at runtime with shift+left/right
 # root=/path/to/root
 
+# pass command. Make sure to have "$@" as last argument
+_pass () {
+    gopass "$@"
+}
+
 # rofi command. Make sure to have "$@" as last argument
 _rofi () {
     rofi -i -no-auto-select "$@"
@@ -24,6 +29,10 @@ fix_layout=false
 
 layout_cmd () {
   setxkbmap us
+}
+
+layout_cmd_leave () {
+  setxkbmap -model pc105 -layout de -variant nodeadkeys
 }
 
 # fields to be used

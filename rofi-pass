@@ -60,7 +60,7 @@ has_qrencode() {
 
 # get all password files and create an array
 list_passwords() {
-    gopass list -f
+    _pass list -f
 }
 
 doClip () {
@@ -132,7 +132,7 @@ generateQrCode() {
 
 openURL () {
 	checkIfPass
-	$BROWSER "$(PASSWORD_STORE_DIR="${root}" gopass "$selected_password" | grep "${URL_field}: " | gawk '{sub(/:/,"")}{print $2}1' | head -1)"; exit;
+	$BROWSER "$(PASSWORD_STORE_DIR="${root}" _pass "$selected_password" | grep "${URL_field}: " | gawk '{sub(/:/,"")}{print $2}1' | head -1)"; exit;
 	clearUp
 }
 
@@ -201,13 +201,13 @@ typeField () {
 generateOTP () {
 	checkIfPass
 
-	# First, we check if there is a non-conventional OTP command in the gopass file
-	if PASSWORD_STORE_DIR="${root}" gopass "$selected_password" | grep -q "${OTPmethod_field}: "; then
+	# First, we check if there is a non-conventional OTP command in the pass file
+	if PASSWORD_STORE_DIR="${root}" _pass "$selected_password" | grep -q "${OTPmethod_field}: "; then
 		# We execute the commands after otp_method: AS-IS
-		bash -c "$(PASSWORD_STORE_DIR="${root}" gopass "$selected_password" | grep "${OTPmethod_field}: " | cut -d' ' -f2-)"
+		bash -c "$(PASSWORD_STORE_DIR="${root}" _pass "$selected_password" | grep "${OTPmethod_field}: " | cut -d' ' -f2-)"
 	else
 		# If there is no method defined, fallback to pass-otp
-		PASSWORD_STORE_DIR="${root}" gopass otp "$selected_password"
+		PASSWORD_STORE_DIR="${root}" _pass otp "$selected_password"
 	fi
 
 	clearUp
@@ -296,9 +296,9 @@ generatePass () {
 		exit
 	fi
 	if [[ $length == "" ]]; then
-		PASSWORD_STORE_DIR="${root}" gopass generate ${symbols} -i "$selected_password" "${password_length}" > /dev/null;
+		PASSWORD_STORE_DIR="${root}" _pass generate ${symbols} -i "$selected_password" "${password_length}" > /dev/null;
 	else
-		PASSWORD_STORE_DIR="${root}" gopass generate ${symbols} -i "$selected_password" "${length}" > /dev/null;
+		PASSWORD_STORE_DIR="${root}" _pass generate ${symbols} -i "$selected_password" "${length}" > /dev/null;
 	fi
 }
 
@@ -367,12 +367,12 @@ mainMenu () {
 			26) ${basecommand} --bmarks; return;;
 		esac
 
-		mapfile -t password_temp < <(PASSWORD_STORE_DIR="${root}" gopass show "$selected_password")
+		mapfile -t password_temp < <(PASSWORD_STORE_DIR="${root}" _pass show "$selected_password")
 		password=${password_temp[0]}
 
 		if [[ ${password} == "#FILE="* ]]; then
 			pass_file="${password#*=}"
-			mapfile -t password_temp2 < <(PASSWORD_STORE_DIR="${root}" gopass show "${pass_file}")
+			mapfile -t password_temp2 < <(PASSWORD_STORE_DIR="${root}" _pass show "${pass_file}")
 			password=${password_temp2[0]}
 		fi
 
@@ -476,7 +476,7 @@ helpMenu () {
 	---
 	${action_menu}: Edit, Move, Delete, Re-generate Submenu
 	${show}: Show Password File
-	${insert_pass}: Insert new Gopass Entry
+	${insert_pass}: Insert new pass Entry
 	${switch}: Switch Pass/Bookmark Mode
 	---
 	${previous_root}: Switch to previous password store (--root)
@@ -563,7 +563,7 @@ actionMenu () {
 
 showEntry () {
 	if [[ -z $pass_content ]]; then
-		pass_temp=$(PASSWORD_STORE_DIR="${root}" gopass show "$selected_password")
+		pass_temp=$(PASSWORD_STORE_DIR="${root}" _pass show "$selected_password")
 		password="${pass_temp%%$'\n'*}"
 		pass_key_value=$(printf '%s\n' "${pass_temp}" | tail -n+2 | grep ': ')
 		declare -A stuff
@@ -626,7 +626,7 @@ showEntry () {
 
 manageEntry () {
 	if [[ "$1" == "edit" ]]; then
-		EDITOR=$EDITOR PASSWORD_STORE_DIR="${root}" gopass edit "${selected_password}"
+		EDITOR=$EDITOR PASSWORD_STORE_DIR="${root}" _pass edit "${selected_password}"
 		mainMenu
 	elif [[ $1 == "move" ]]; then
 		cd "${root}" || exit
@@ -635,7 +635,7 @@ manageEntry () {
 		if [[ $group == "" ]]; then
 			exit
 		fi
-		PASSWORD_STORE_DIR="${root}" gopass mv "$selected_password" "${group}"
+		PASSWORD_STORE_DIR="${root}" _pass mv "$selected_password" "${group}"
 		mainMenu
 	elif [[ $1 == "copy" ]]; then
 		cd "${root}" || exit
@@ -646,7 +646,7 @@ manageEntry () {
 		else
 			new_name="$(listgpg | _rofi -dmenu -format 'f' -mesg "Copying to same Group. Please enter a name for the new entry" -p "> ")"
 		fi
-		PASSWORD_STORE_DIR="${root}" gopass cp "$selected_password" "${group}/${new_name}"
+		PASSWORD_STORE_DIR="${root}" _pass cp "$selected_password" "${group}/${new_name}"
 		mainMenu
 	elif [[ "$1" == "delete" ]]; then
 		HELP="<span color='$help_color'>Selected entry: ${selected_password}</span>"
@@ -654,7 +654,7 @@ manageEntry () {
 			"No")
 		ask=$(printf '%s\n' "${ask_content[@]}" | _rofi -mesg "${HELP}" -dmenu -p "Are You Sure? > ")
 		if [[ "$ask" == "Yes" ]]; then
-			PASSWORD_STORE_DIR="${root}" gopass rm --force "${selected_password}"
+			PASSWORD_STORE_DIR="${root}" _pass rm --force "${selected_password}"
 		elif [[ "$ask" == "No" ]]; then
 			mainMenu
 		elif [[ -z "$ask" ]]; then
@@ -728,12 +728,12 @@ insertPass () {
 				"---"
 				"${USERNAME_field}: ${user}"
 				"${URL_field}: ${url}")
-			printf '%s\n' "${pass_content[@]}" | PASSWORD_STORE_DIR="${root}" gopass insert -m "${name}" > /dev/null && PASSWORD_STORE_DIR="${root}" gopass edit "${name}"
+			printf '%s\n' "${pass_content[@]}" | PASSWORD_STORE_DIR="${root}" _pass insert -m "${name}" > /dev/null && PASSWORD_STORE_DIR="${root}" _pass edit "${name}"
 		else
 			pass_content=("${pw}"
 				"---"
 				"${USERNAME_field}: ${user}")
-			printf '%s\n' "${pass_content[@]}" | PASSWORD_STORE_DIR="${root}" gopass insert -m "${name}" > /dev/null && PASSWORD_STORE_DIR="${root}" gopass edit "${name}"
+			printf '%s\n' "${pass_content[@]}" | PASSWORD_STORE_DIR="${root}" _pass insert -m "${name}" > /dev/null && PASSWORD_STORE_DIR="${root}" _pass edit "${name}"
 		fi
 	else
 		if [[ $url == http* ]]; then
@@ -741,14 +741,14 @@ insertPass () {
 				"---"
 				"${USERNAME_field}: ${user}"
 				"${URL_field}: ${url}")
-			printf '%s\n' "${pass_content[@]}" | PASSWORD_STORE_DIR="${root}" gopass insert -m "${group}/${name}" > /dev/null && PASSWORD_STORE_DIR="${root}" gopass edit "${group}/${name}"
+			printf '%s\n' "${pass_content[@]}" | PASSWORD_STORE_DIR="${root}" _pass insert -m "${group}/${name}" > /dev/null && PASSWORD_STORE_DIR="${root}" _pass edit "${group}/${name}"
 		else
 			pass_content=("${pw}"
 				"---"
 				"${USERNAME_field}: ${user}")
-			printf '%s\n' "${pass_content[@]}" | PASSWORD_STORE_DIR="${root}" gopass insert -m "${group}/${name}" > /dev/null
+			printf '%s\n' "${pass_content[@]}" | PASSWORD_STORE_DIR="${root}" _pass insert -m "${group}/${name}" > /dev/null
 			if [[ $edit_new_pass == "true" ]]; then
-				PASSWORD_STORE_DIR="${root}" gopass edit "${group}/${name}"
+				PASSWORD_STORE_DIR="${root}" _pass edit "${group}/${name}"
 			fi
 		fi
 	fi
