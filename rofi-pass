@@ -789,6 +789,9 @@ main () {
 	# enable extended globbing
 	shopt -s nullglob globstar
 
+        # clean on exit, so we are get our kbd layout back!
+        trap clearUp EXIT
+
 	# load config file
 	config_file="$(get_config_file)"
 	[[ ! -z "$config_file" ]] && source "$config_file"
