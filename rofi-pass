@@ -379,7 +379,7 @@ mainMenu () {
 		fields=$(printf '%s\n' "${password_temp[@]:1}" | awk '$1 ~ /:$/ || /otpauth:\/\// {$1=$1;print}')
 		declare -A stuff
 		stuff["pass"]=${password}
-	
+
 		if [[ -n $fields ]]; then
 			while read -r LINE; do
 				unset _id _val
@@ -419,6 +419,11 @@ mainMenu () {
 	fi
 	pass_content="$(for key in "${!stuff[@]}"; do printf '%s\n' "${key}: ${stuff[$key]}"; done)"
 
+	# fix keyboard layout if enabled in config
+	if [[ $fix_layout == "true" ]]; then
+		layout_cmd
+	fi
+
 	# actions based on keypresses
 	# The exit code for -kb-custom-X is X+9.
 	case "${rofi_exit}" in
@@ -438,6 +443,12 @@ mainMenu () {
 		28) generateQrCode;;
 	esac
 	clearUp
+
+	# fix keyboard layout if enabled in config
+	if [[ $fix_layout == "true" ]]; then
+		layout_cmd_leave
+	fi
+
 }
 
 
@@ -785,11 +796,6 @@ main () {
 	# create tmp dir
 	if [[ ! -d "$HOME/.cache/rofi-pass" ]]; then
 		mkdir "$HOME/.cache/rofi-pass"
-	fi
-
-	# fix keyboard layout if enabled in config
-	if [[ $fix_layout == "true" ]]; then
-		layout_cmd
 	fi
 
 	# set help color
